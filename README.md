@@ -1,3 +1,5 @@
+# worm_game
+
 worm_game, an easy to pick up game where you guide an axolotl towards worms using the mouse curser whilst avoiding a predatory carp; All written in html & javascript.
 
 Player score is countered by how many worms the axolotl manages to eat before being caught by the carp. The axolotl also grows in size for each worm eaten (using an exponetnal decay function, ensuring the axolotl never actually grows larger than the carp), increasing the diffulty as the score counter goes up. 
