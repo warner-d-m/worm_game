@@ -1,6 +1,6 @@
 # worm_game
 
-LINK TO GAME; https://warner-d-m.github.io/play_worm_game/
+LINK TO PLAY GAME; https://warner-d-m.github.io/play_worm_game/
 
 LINK TO IO; https://warner-d-m.github.io/worm_game/
 
