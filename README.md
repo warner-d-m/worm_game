@@ -6,4 +6,4 @@ The axolotl growing in size provides the player with both a sense of visual prog
 
 The otherwise child-like visuals, silly language, and two-frame animation style (each object consists of two images switch each second) provides a charming and freshing feeling whilst playing the game.
 
-![example_screengrab](https://github.com/warner-d-m/worm_game/assets/130168523/fc7f4669-bb94-43bc-b7af-900d4462d91b)
+![example_screengrab](https://github.com/warner-d-m/worm_game/assets/130168523/a23aa50f-b6fe-4993-8bd9-c4ec8680dfeb)
