@@ -2,7 +2,7 @@
 
 LINK TO GAME; https://warner-d-m.github.io/play_worm_game/
 
-LINK TO GITHUB PAGE; https://github.com/warner-d-m/worm_game/edit/main/README.md
+LINK TO IO; https://warner-d-m.github.io/worm_game/
 
 worm_game, an easy to pick up game where you guide an axolotl towards worms using the mouse curser whilst avoiding a predatory carp; All written in html & javascript.
 
