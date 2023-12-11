@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mouse Follower</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+    #startScreen {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.8);
+      color: white;
+      font-size: 36px;
+      z-index: 999;
+    }
+
+    #gameOverScreen {
+      display: none;
+      position: fixed;
+      top: 200px; /* Fixed position for y-axis */
+      left: 600px; /* Fixed position for x-axis */
+      background-color: rgba(0, 0, 0, 0.8);
+      color: white;
+      padding: 20px;
+      text-align: center;
+      font-size: 24px;
+      z-index: 999;
+    }
+
+    #playAgainButton {
+      background-color: #4CAF50;
+      color: white;
+      padding: 10px 20px;
+      font-size: 18px;
+      cursor: pointer;
+    }
+
+    #scoreDisplay {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      color: white;
+      font-size: 18px;
+      z-index: 999;
+    }
+
+    #topScoreDisplay {
+      position: fixed;
+      top: 60px;
+      left: 20px;
+      color: gold;
+      font-size: 18px;
+      z-index: 999;
+    }
+
+    #backgroundImage {
+      position: absolute;
+      width: 1440px;
+      height: 720px;
+      top: 0;
+      left: 0;
+      z-index: -1; /* Ensure it's behind other images */
+    }
+  </style>
+</head>
+<body>
+  <div id="startScreen">
+    <p>Click to Start Eating Worms</p>
+  </div>
+
+  <div id="gameOverScreen">
+    <p>No more worms for you :(</p>
+    <p>Worms eaten: <span id="finalScore">0</span></p>
+    <p>Most worms eaten: <span id="finalTopScore">0</span></p>
+    <button id="playAgainButton">Play Again</button>
+  </div>
+
+  <div id="scoreDisplay">Worms eaten: <span id="currentScore">0</span></div>
+  <div id="topScoreDisplay">Most worms eaten: <span id="currentTopScore">0</span></div>
+
+  <!-- Fourth stationary image (background) -->
+  <img id="backgroundImage" src="background_image.png" alt="Background Image">
+
+  <script>
+    let gameStarted = false;
+
+    // Function to start the game
+    function startGame() {
+      document.getElementById('startScreen').style.display = 'none';
+      gameStarted = true;
+    }
+
+    // Event listener for clicking to start the game
+    document.addEventListener('click', startGame);
+    // Function to create an image element
+    function createImage(srcArray, size) {
+      const image = new Image();
+      image.srcArray = srcArray;
+      image.currentSrcIndex = 0; // Initial index
+      image.src = srcArray[0]; // Set the initial source
+      image.style.position = 'absolute';
+      image.width = size;
+      image.height = size;
+      document.body.appendChild(image);
+      return image;
+    }
+
+    function updateImageSize(image, score) {
+      // Use an exponential decay function to approach 75
+      const decayFactor = 0.2; // You can adjust this factor for the desired rate of decay
+      const newSize = 75 + (50 - 75) * Math.exp(-decayFactor * score);
+
+      // Update the image size
+      image.width = newSize;
+      image.height = newSize;
+    }
+
+    // Check if two images overlap
+    function checkOverlap(image1, image2) {
+      return !(
+        image2.offsetLeft > image1.offsetLeft + image1.width ||
+        image2.offsetLeft + image2.width < image1.offsetLeft ||
+        image2.offsetTop > image1.offsetTop + image1.height ||
+        image2.offsetTop + image2.height < image1.offsetTop
+      );
+    }
+
+    // Function to reset the game
+    function resetGame() {
+      document.getElementById('gameOverScreen').style.display = 'none';
+
+      // Reset image positions
+      image1.style.left = '720px';
+      image1.style.top = '360px';
+      image2.style.left = '0px';
+      image2.style.top = '0px';
+
+      // Reset image3 to a new random position
+      resetImage3Position();
+
+      // Reset the score
+      currentScore = 0;
+      updateImageSize(image1, currentScore);
+      updateScoreDisplay();
+
+      // Reset the speed of image1
+      let speed1 = 0;
+
+      // Reset the game over flag
+      gameOver = false;
+
+      // Start the update loops again
+      update1();
+      update2();
+    }
+
+    // Function to reset image3 to a new random position
+    function resetImage3Position() {
+      const maxX = 1440 - image3.width;
+      const maxY = 720 - image3.height;
+
+      // Set a new random position for image3
+      image3.style.left = Math.floor(Math.random() * maxX) + 'px';
+      image3.style.top = Math.floor(Math.random() * maxY) + 'px';
+    }
+    
+    // Create the first image
+    let image1 = createImage(['image1_1.png', 'image1_2.png'], 50);
+
+    // Create the second image
+    const image2 = createImage(['image2_1.png', 'image2_2.png'], 87);
+
+    // Create the third stationary image
+    const image3 = createImage(['image3_1.png', 'image3_2.png'], 50);
+
+    // Create the fourth stationary image (background)
+    const backgroundImage = document.getElementById('backgroundImage');
+
+    // Set the speed for the first image (you can adjust this value)
+    let speed1 = 0;
+
+    // Set the initial position for the first image
+    image1.style.left = '720px';
+    image1.style.top = '360px';
+
+    // Set the initial position for the second image
+    image2.style.left = '0px';
+    image2.style.top = '0px';
+
+    // Set the initial position for the third image
+    resetImage3Position();
+
+    // Initialize the initial position for the first image
+    let mouseX1 = 0;
+    let mouseY1 = 0;
+
+    // Flag to indicate whether the game is over
+    let gameOver = false;
+
+    // Update mouse position on mousemove for the first image
+    document.addEventListener('mousemove', (event) => {
+      if (!gameOver) {
+        mouseX1 = event.clientX - image1.width / 2;
+        mouseY1 = event.clientY - image1.height / 2;
+      }
+    });
+
+    // Update image position continuously for the first image using requestAnimationFrame
+    function update1() {
+      if (!gameOver) {
+        const deltaX = mouseX1 - image1.offsetLeft;
+        const deltaY = mouseY1 - image1.offsetTop;
+        const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+
+        // Increase the threshold
+        const threshold = 5;
+
+        if (distance > threshold) {
+          // Limit the maximum distance the image can move in one frame
+          const maxMove = Math.min(speed1, distance - threshold);
+
+          const ratio = maxMove / distance;
+          const moveX = ratio * deltaX;
+          const moveY = ratio * deltaY;
+
+          // Flip the image horizontally if moving to the left
+          image1.style.transform = moveX < 0 ? 'scaleX(-1)' : 'scaleX(1)';
+
+          // Restrict movement within x=500 and y=500 bounds
+          const newX = Math.min(1440 - image1.width, Math.max(0, image1.offsetLeft + moveX));
+          const newY = Math.min(720 - image1.height, Math.max(0, image1.offsetTop + moveY));
+
+          image1.style.left = newX + 'px';
+          image1.style.top = newY + 'px';
+
+          // Check for overlap with the second image
+          if (checkOverlap(image1, image2)) {
+            // Display game over screen
+            document.getElementById('gameOverScreen').style.display = 'block';
+            document.getElementById('finalScore').textContent = currentScore;
+
+            // Update top score if the current score is higher
+            if (currentScore > topScore) {
+              topScore = currentScore;
+              updateTopScoreDisplay();
+            }
+
+            gameOver = true;
+            return; // Stop the animation
+          }
+
+          // Check for overlap with the third image
+          if (checkOverlap(image1, image3)) {
+            // Increment the score
+            currentScore++;
+            updateScoreDisplay();
+            updateImageSize(image1, currentScore);
+
+            // Reset image3 to a new random position
+            resetImage3Position();
+          }
+        }
+
+        requestAnimationFrame(update1);
+      }
+    }
+
+    // Start the update loop for the first image
+    update1();
+
+    // Set the speed for the second image (you can adjust this value)
+    let speed2 = 0;
+
+    // Initialize the initial position for the second image
+    let mouseX2 = 0;
+    let mouseY2 = 0;
+
+    // Update mouse position on mousemove for the second image
+    document.addEventListener('mousemove', (event) => {
+      mouseX2 = event.clientX - image2.width / 2;
+      mouseY2 = event.clientY - image2.height / 2;
+    });
+
+    // Update image position continuously for the second image using requestAnimationFrame
+    function update2() {
+      const deltaX = mouseX2 - image2.offsetLeft;
+      const deltaY = mouseY2 - image2.offsetTop;
+      const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+
+      // Increase the threshold
+      const threshold = 5;
+
+      if (distance > threshold) {
+        // Limit the maximum distance the image can move in one frame
+        const maxMove = Math.min(speed2, distance - threshold);
+
+        const ratio = maxMove / distance;
+        const moveX = ratio * deltaX;
+        const moveY = ratio * deltaY;
+
+        // Flip the image horizontally if moving to the left
+        image2.style.transform = moveX < 0 ? 'scaleX(-1)' : 'scaleX(1)';
+
+        // Restrict movement within x=500 and y=500 bounds
+        const newX = Math.min(1440 - image2.width, Math.max(0, image2.offsetLeft + moveX));
+        const newY = Math.min(720 - image2.height, Math.max(0, image2.offsetTop + moveY));
+
+        image2.style.left = newX + 'px';
+        image2.style.top = newY + 'px';
+
+        // Check for overlap with the first image
+        if (checkOverlap(image1, image2)) {
+          // Display game over screen
+          document.getElementById('gameOverScreen').style.display = 'block';
+          document.getElementById('finalScore').textContent = currentScore;
+
+          // Update top score if the current score is higher
+          if (currentScore > topScore) {
+            topScore = currentScore;
+            updateTopScoreDisplay();
+          }
+
+          gameOver = true;
+          return; // Stop the animation
+        }
+      }
+
+      requestAnimationFrame(update2);
+    }
+
+    // Start the update loop for the second image
+    update2();
+
+    // Add event listener for the "Play Again" button
+    document.getElementById('playAgainButton').addEventListener('click', resetGame);
+
+    // Score variables
+    let currentScore = 0;
+    let topScore = 0;
+    const scoreDisplay = document.getElementById('currentScore');
+    const topScoreDisplay = document.getElementById('currentTopScore');
+    const finalTopScoreDisplay = document.getElementById('finalTopScore');
+
+    // Function to update the score display
+    function updateScoreDisplay() {
+      scoreDisplay.textContent = currentScore;
+    }
+
+    // Function to update the top score display
+    function updateTopScoreDisplay() {
+      topScoreDisplay.textContent = topScore;
+      finalTopScoreDisplay.textContent = topScore; // Update the top score on the game over screen
+    }
+
+    // Function to toggle between two images
+    function toggleImage(image) {
+      if (!gameOver) {
+        image.currentSrcIndex = 1 - image.currentSrcIndex; // Toggle between 0 and 1
+        image.src = image.srcArray[image.currentSrcIndex];
+      } else {
+        // Use different images when the game is over
+        image1.src = gameOver ? 'image1_3.png' : 'image1_4.png';
+
+
+      }
+    }
+
+    // Toggle images every second (1000 milliseconds) only if the game has started
+    setInterval(() => {
+      if (gameStarted) {
+        toggleImage(image1);
+        toggleImage(image2);
+        toggleImage(image3);
+        
+        // Set speeds based on the game state
+        speed1 = gameOver ? 0 : 10;
+        speed2 = gameOver ? 0 : 6;
+      }
+    }, 250);
+
+  </script>
+</body>
+</html>
